@@ -1,0 +1,221 @@
+﻿#include <iostream>
+#include <cstring>
+using namespace std;
+const int MAX_LONG = 8192;
+int maxSize(int a, int b) {
+    if (a > b) {
+        return a;
+    } else {
+        return b;
+    }
+}int min(int a, int b) {
+    if (a < b) {
+        return a;
+    }else {
+        return b;
+    }
+}
+bool areTheyEqual(char lnum1[], char lnum2[]) {
+    int counter = 0;
+    if (strlen(lnum1) != strlen(lnum2)) {
+        return false;
+    }
+    else {
+        for (int i = 0; i < strlen(lnum1) - 1; i++) {
+            if (lnum1[i] == lnum2[i]) {
+                counter++;
+            }
+        }if (counter == strlen(lnum1) - 1) {
+            return true;
+        }
+    }
+    return false;
+} char* bigger(char lnum1[], char lnum2[]) {    
+    if (strlen(lnum1) > strlen(lnum2)) {
+       return lnum1;
+    } else if (strlen(lnum1) < strlen(lnum2)) {
+        return lnum2;
+    } else {
+        for (int i = 0; i < strlen(lnum1) - 1; i++) {
+            if (lnum1[i] > lnum2[i]) {
+                return lnum1;
+            }
+            else if (lnum1[i] < lnum2[i]) {
+                return lnum2;
+            }
+        }
+    }
+}
+void Sum(char lnum1[], char lnum2[]) {
+    char sum[MAX_LONG], num1[MAX_LONG],num2[MAX_LONG];
+    int l1, l2;
+    for (l1 = 0; lnum1[l1] != '\0'; l1++)
+        num1[l1] = lnum1[l1] - '0';
+
+    for (l2 = 0; lnum2[l2] != '\0'; l2++)
+        num2[l2] = lnum2[l2] - '0';
+    int carry = 0;
+    int k = 0;
+    int i = l1 - 1;
+    int j = l2 - 1;
+    for (; i >= 0 && j >= 0; i--, j--, k++)
+    {
+        sum[k] = (num1[i] + num2[j] + carry) % 10;
+        carry = (num1[i] + num2[j] + carry) / 10;
+    }
+    if (l1 > l2)
+    {
+        while (i >= 0)
+        {
+            sum[k++] = (num1[i] + carry) % 10;
+            carry = (num1[i--] + carry) / 10;
+        }
+    }
+    else if (l1 < l2)
+    {
+        while (j >= 0)
+        {
+            sum[k++] = (num2[j] + carry) % 10;
+            carry = (num2[j--] + carry) / 10;
+        }
+    }
+    else
+    {
+        if (carry > 0)
+            sum[k++] = carry;
+    }
+    cout << lnum1 << " + " << lnum2 << " = ";
+    for (k--; k >= 0; k--)
+        cout << (int)sum[k];
+    cout << endl;
+}
+void Difference(char lnum1[], char lnum2[]) {
+   unsigned difference[MAX_LONG];
+    int m = strlen(lnum1), n = strlen(lnum2), i, j, k = 0, borrow = 0;
+    i = m - 1, j = n - 1;
+    int t = maxSize(m,n)-min(m,n);
+    while (i >= 0 && j >= 0) {
+        difference[k] = (lnum1[i] - '0') - (lnum2[i] - '0') + borrow;
+        if (difference[k] < 0) {
+            difference[k] += 10;
+            borrow = 1;
+        }  else {            
+            borrow = 0;
+        }
+        k++; i--; j--;
+    } if (i >= 0) {
+        while (i >= 0) {
+            difference[k] = (lnum1[i] - '0') + borrow;
+            if (difference[k] < 0) {
+                difference[k] += 10;
+                borrow = 1;
+            }  else {
+                borrow = 0;
+            }
+            k++; i--;
+        }
+    }  if (j >= 0) {
+        while (j >= 0) {
+            difference[k] = (lnum2[j] - '0') + borrow;
+            if (difference[k] < 0) {
+                difference[k] += 10;
+                borrow = 1;
+            }
+            else {
+                borrow = 0;
+            }
+            k++; j--;
+        }
+    }  t--;
+    while (difference[t] == 0 && t != 0)
+        t--;
+        cout << lnum1 << " - " << lnum2 << " = ";
+        for (; t >= 0; t--){
+            cout << difference[t];
+        }
+        cout << endl;
+    
+}void Multiplication(char lnum1[], char lnum2[]) {
+     unsigned char multiplication[MAX_LONG] = {0};
+     int number1[MAX_LONG],number2[MAX_LONG];
+    int i, j, tmp;
+    int l1 = strlen(lnum1);
+    int l2 = strlen(lnum2);
+    for (i = l1 - 1, j = 0; i >= 0; i--, j++)
+    {
+        number1[j] = lnum1[i] - '0';
+    }
+    for (i = l2 - 1, j = 0; i >= 0; i--, j++)
+    {
+        number2[j] = lnum2[i] - '0';
+    }
+    for (i = 0; i < l2; i++)
+    {
+        for (j = 0; j < l1; j++)
+        {
+            multiplication[i + j] += number2[i] * number1[j];
+        }
+    }
+    for (i = 0; i < l1 + l2; i++)
+    {
+        tmp = multiplication[i] / 10;
+        multiplication[i] = multiplication[i] % 10;
+        multiplication[i + 1] = multiplication[i + 1] + tmp;
+    }
+    for (i = l1 + l2; i >= 0; i--)
+    {
+        if (multiplication[i] > 0)
+            break;
+    }
+    cout << lnum1 << " * " << lnum2 << " = ";
+    for (; i >= 0; i--) {
+        cout << (int)multiplication[i];
+    }
+    cout << endl;
+}void Divination(char lnum1[], char lnum2[]) {
+    unsigned char divination[MAX_LONG];
+    for (int i = 0; i < maxSize(strlen(lnum1),strlen(lnum2))-min(strlen(lnum1), strlen(lnum2)); i++) {
+        divination[i] = (divination[i] * 10 + (int)lnum1[i] - '0') / (int)lnum2[i];
+    }
+    cout << lnum1 << " / " << lnum2 << " = ";
+    for (int i = 0; i < maxSize(strlen(lnum1), strlen(lnum2)) - min(strlen(lnum1), strlen(lnum2)); i++) {
+        cout << (int)divination[i];
+    }
+    cout << endl;
+}void Modul( char lnum1[], char lnum2[]) {
+    unsigned char modul[MAX_LONG];
+    for (int i = 0; i < min(strlen(lnum1),strlen(lnum2)); i++)
+        modul[i] = (modul[i] * 10 + (int)lnum1[i] - '0') % (int)lnum2[i];
+    cout << lnum1 << " % " << lnum2 << " = ";
+    for (int i = 0; i < min(strlen(lnum1), strlen(lnum2))-1; i++) {
+        cout << (int)modul[i];
+    }
+    cout << endl;
+}
+int main()
+{
+    char longNumber1[MAX_LONG];
+    cin.getline(longNumber1, 8192);
+    char longNumber2[MAX_LONG];
+    cin.getline(longNumber2, 8192);
+    cout << longNumber1 << " " << longNumber2 << endl;
+    if (areTheyEqual(longNumber1, longNumber2) == true) {
+        cout << longNumber1 << " = " << longNumber2<<endl;
+    } else {
+        cout << longNumber1 << " != " << longNumber2<<endl;
+    }
+    if (bigger(longNumber1, longNumber2) == longNumber1) {
+        cout << longNumber1 << " > " << longNumber2 << endl;
+    } else if (bigger(longNumber1, longNumber2) == longNumber2) {
+        cout << longNumber1 << " < " << longNumber2 << endl;
+    }else {
+        cout << longNumber1 << " = " << longNumber2 << endl;
+    }
+    Sum(longNumber1, longNumber2);
+    Difference(longNumber1, longNumber2);
+    Multiplication(longNumber1, longNumber2);
+     Divination(longNumber1, longNumber2);
+     Modul( longNumber1, longNumber2);
+    return 0;
+}
+
