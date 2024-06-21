@@ -1,33 +1,34 @@
-#pragma once
-#pragma warning(disable:4996)
-#include <fstream>
-class Date
-{
+#ifndef DATE_H
+#define DATE_H
+
+#include <cstdint>
+#include <ostream>
+
+class Date{
+
 public:
-	Date(short day, short month, unsigned short year);
-	Date(const char* date);
-	Date();
+    Date() = default;
+    Date(uint32_t year, uint32_t month, uint32_t day);
+    Date(const char *formattedDate);
 
+    void Print(std::ostream &os) const;
+    bool Before(Date const other) const;
 
-	void setDay(short day);
-	void setMonth(short month);
-	void setYear(short year);
+    uint32_t GetYear() const;
+    uint32_t GetMonth() const;
+    uint32_t GetDay() const;
 
-	short getDay() const;
-	short getMonth() const;
-	unsigned short getYear() const;
-
-	void print();
-	void print(std::ofstream& out);
-
-   void readFromFile(std::ifstream& in);
+    void SetDay(uint32_t day);
+    void SetMonth(uint32_t month);
+    void SetYear(uint32_t year);
 
 private:
-	short day;
-	short month;
-	unsigned short year;
+    // year - 6bits -> 63, month - 4bits -> 15, day - 5bits -> 31
+    // Total: 15/16bits used.
+    uint16_t time = 0;
 
-	bool validDate(const char* date);
-	
+    static uint16_t const DAYS_IN_MONTHS[12];
+
 };
 
+#endif

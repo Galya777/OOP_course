@@ -1,138 +1,174 @@
-#include "Car.h"
-#include <iostream>
+#include <cstring>
+#include <utility>
+#include "Car.hpp"
 
-const char* Car::getBrand() const
-{
-    return brand;
+uint64_t Car::totalHorsePower = 0;
+
+Date ReadDate(std::istream &is){
+
+    size_t const BUFFER_SIZE = 1024;
+    char buffer[BUFFER_SIZE];
+
+    is >> buffer;
+
+    return Date(buffer);
+
 }
 
-const Type Car::getBack() const
-{
-    return back;
+Car::Trunk ReadTrunkType(std::istream &is){
+
+    if(is.bad() || is.fail()) throw std::ios_base::failure("Input stream error");
+
+    size_t const BUFFER_SIZE = 1024;
+    char buffer[BUFFER_SIZE];
+
+    is >> buffer;
+
+    if(!strcmp(buffer, "Sedan")) return Car::Trunk::SEDAN;
+    else if(!strcmp(buffer, "Kombi")) return Car::Trunk::KOMBI;
+    else if(!strcmp(buffer, "Hatchback")) return Car::Trunk::HATCHBACK;
+
+    return Car::Trunk::SEDAN;
+
 }
 
-int Car::getPower() const
-{
-    return power;
+Car::Car(std::istream &is): trunkType(ReadTrunkType(is)), date(ReadDate(is)){
+
+    size_t const BUFFER_SIZE = 1024;
+    char buffer[BUFFER_SIZE];
+
+    is >> buffer;
+
+    brand = new char[strlen(buffer) + 1];
+    strcpy(brand, buffer);
+
+    is >> horsePower;
+    if(!horsePower || horsePower > 3000) throw std::ios_base::failure("Value read from the stream was invalid");
+    is >> seats;
+    if(!seats || seats > 12) throw std::ios_base::failure("Value read from the stream was invalid");
+    if(is.fail() || is.bad()) throw std::ios_base::failure("Error while reading values from the stream");
+    totalHorsePower += horsePower;
+
 }
 
-int Car::getPlaces() const
-{
-    return places;
-}
-
-Date Car::getDate() const
-{
-    return date;
-}
-
-int Car::getAllPower() const
-{
-    return allPower;
-}
-
-void Car::printCar()
-{
-    std::cout << brand << " ";
-    date.print();
-    std::cout << " " << back << " " << power << " " << places;
-}
-
-void Car::printCar(std::ofstream& out)
-{
-    out << brand << " ";
-    date.print(out);
-    out << " " << back << " " << power << " " << places;
-}
-
-void Car::init(const char* brand, Date date, const Type back, int power, int places)
-{
-    setBrand(brand);
-    setDate(date);
-    this->back = back;
-    setPower(power);
-    setPlaces(places);
-}
-
-void Car::copy(const Car& other)
-{
-    init(other.getBrand(),other.getDate(),  other.getBack(), other.getPower(), other.getPlaces());
-    this->allPower = other.allPower;
-}
-
-void Car::remove()
-{
-    delete[] brand;
-}
-
-
-Car::Car(std::ifstream& carData)
-{
-    allPower = 0;
-    if (!carData) {
-        throw "Problem with file!";
-    }
-    carData >> (char*)brand;
-    date.readFromFile(carData);
-    carData >> (char*)back >> power >> places;
-
-    carData.close();
-    allPower += power;
-}
-
-Car::Car(const char* brand, Date date, const Type back, int power, int places)
-{
-    allPower += power;
-    init(brand, date, back, power, places);
-    
-}
-
-Car::Car()
-{
-    Date date = Date();
-    init("", date, Type::Hatchback, 0, 0);
-    allPower = 0;
-}
-
-Car::Car(const Car& other)
-{
+Car::Car(Car const &other): trunkType(other.trunkType){
     copy(other);
 }
 
-Car& Car::operator=(const Car& other)
-{
-    if (this != &other) {
-        remove();
-        copy(other);
-    }
+Car::Car(Car &&other) noexcept : trunkType(other.trunkType){
+    move(std::move(other));
+}
+
+Car::~Car(){
+    free();
+}
+
+Car &Car::operator =(Car const &other){
+
+    if(this == &other) return *this;
+
+    *this = Car(other);
+
     return *this;
-    // TODO: insert return statement here
+
 }
 
-Car::~Car()
-{
-    remove();
+Car &Car::operator =(Car &&other) noexcept{
+
+    if(this == &other) return *this;
+
+    free();
+    move(std::move(other));
+
+    return *this;
+
 }
 
-void Car::setBrand(const char* brand)
-{
-    this->brand = new char[strlen(brand) + 1];
-    strcpy(this->brand, brand);
+void Car::Print(std::ostream &os) const{
+
+    switch (trunkType){
+
+        case Trunk::SEDAN:
+            os << "Sedan ";
+            break;
+        case Trunk::KOMBI:
+            os << "Kombi ";
+            break;
+        case Trunk::HATCHBACK:
+            os << "Hatch back ";
+            break;
+
+    }
+
+    date.Print(os);
+
+    os << ' ' << brand << ' ' << horsePower << ' ' << seats << '\n';
+
 }
 
-void Car::setPower(int power)
-{
-    this->power = power;
+char const *Car::GetBrand() const{
+    return brand;
 }
 
-void Car::setPlaces(int places)
-{
-    this->places = places;
+Date Car::GetDate() const{
+    return date;
 }
 
-void Car::setDate(Date date)
-{
-    this->date.setDay(date.getDay());
-    this->date.setMonth(date.getMonth());
-    this->date.setYear(date.getYear());
+void Car::SetBrand(char const *brand){
+
+    if(!brand) return;
+
+    char *temp = new char[strlen(brand) + 1];
+
+    delete[] this -> brand;
+    this -> brand = temp;
+    strcpy(this -> brand, brand);
+
+}
+
+void Car::SetDate(char const *date){
+    this -> date = Date(date);
+}
+
+void Car::SetDate(Date date){
+    this -> date = date;
+}
+
+void Car::SetHorsePower(uint16_t horsePower){
+
+    if(!horsePower || horsePower > 3000) throw std::invalid_argument("Invalid value");
+    totalHorsePower -= this -> horsePower - horsePower;
+    this -> horsePower = horsePower;
+
+}
+
+uint64_t Car::GetTotalHorsePower(){
+    return totalHorsePower;
+}
+
+void Car::copy(Car const &other){
+
+    brand = new char[strlen(other.brand) + 1];
+    strcpy(brand, other.brand);
+    date = other.date;
+    horsePower = other.horsePower;
+    seats = other.seats;
+    totalHorsePower += other.horsePower;
+
+}
+
+void Car::move(Car &&other){
+
+    brand = std::exchange(other.brand, nullptr);
+    horsePower = other.horsePower;
+    seats = other.seats;
+    totalHorsePower += other.horsePower;
+
+}
+
+void Car::free(){
+
+    totalHorsePower -= horsePower;
+    delete[] brand;
+
 }
